@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Тренажёр: НДС-посредник | Мессенджер</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #eef2f7 0%, #e0e7ef 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, 'Roboto', sans-serif;
+            padding: 20px;
+        }
+
+        .messenger {
+            max-width: 750px;
+            width: 100%;
+            background: #FFFFFF;
+            border-radius: 36px;
+            box-shadow: 0 30px 50px -15px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: #FFFFFF;
+            padding: 18px 24px 12px 24px;
+            border-bottom: 1.5px solid rgba(149, 202, 250, 0.6);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .avatar {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, #95CAFA, #7eb5df);
+            border-radius: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            box-shadow: 0 4px 10px rgba(149, 202, 250, 0.3);
+        }
+        .chat-info h2 {
+            font-size: 1.28rem;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            color: #1a2c3e;
+        }
+        .chat-info h2 span {
+            font-weight: 500;
+            background: #ecf7ff;
+            padding: 2px 8px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            margin-left: 8px;
+            color: #2c6e9e;
+        }
+        .chat-info p {
+            font-size: 0.8rem;
+            color: #5e7a93;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .online-dot {
+            width: 8px;
+            height: 8px;
+            background: #2fc96b;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .messages-area {
+            background: #FEFEFE;
+            padding: 22px 20px 12px 20px;
+            min-height: 460px;
+            max-height: 520px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            display: flex;
+            max-width: 85%;
+            animation: fadeSlideUp 0.26s ease-out;
+        }
+        .client-message { align-self: flex-start; }
+        .client-message .bubble {
+            background: #F1F5F9;
+            border-radius: 22px 22px 22px 8px;
+            border: 1px solid #e0ecf5;
+        }
+        .user-message { align-self: flex-end; }
+        .user-message .bubble {
+            background: #95CAFA18;
+            border-radius: 22px 22px 8px 22px;
+            border: 1px solid #95CAFA;
+        }
+        .bubble {
+            padding: 12px 18px;
+            font-size: 0.95rem;
+            line-height: 1.45;
+            font-weight: 440;
+            word-break: break-word;
+            color: #1e2e3c;
+        }
+        .message-meta {
+            font-size: 0.68rem;
+            margin-top: 6px;
+            margin-left: 10px;
+            margin-right: 10px;
+            color: #8da0b2;
+            display: flex;
+            gap: 8px;
+        }
+        .client-message .message-meta { justify-content: flex-start; }
+        .user-message .message-meta { justify-content: flex-end; }
+
+        .options-panel {
+            background: #FFFFFF;
+            border-top: 1px solid rgba(149, 202, 250, 0.6);
+            padding: 20px 20px 16px;
+        }
+        .options-title {
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            color: #5e7a93;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .options-title::before { content: "⚡"; font-size: 14px; }
+        .options-grid { display: flex; flex-direction: column; gap: 12px; }
+        .option-btn {
+            width: 100%;
+            background: transparent;
+            border: 1.8px solid #95CAFA;
+            border-radius: 26px;
+            padding: 13px 18px;
+            font-family: 'Segoe UI', 'Inter', sans-serif;
+            font-size: 0.93rem;
+            font-weight: 500;
+            text-align: left;
+            color: #1e2f3e;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #FFFFFF;
+            line-height: 1.35;
+        }
+        .option-btn:hover {
+            background: #F4FAFF;
+            border-color: #7bb9e6;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(149, 202, 250, 0.2);
+        }
+        .options-disabled .option-btn {
+            opacity: 0.6;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .analysis-card {
+            margin: 12px 20px 20px 20px;
+            border-radius: 20px;
+            padding: 14px 18px;
+            font-size: 0.88rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .analysis-card.correct {
+            background-color: #e9f7ef;
+            border-left: 6px solid #2c9b5e;
+            color: #155724;
+        }
+        .analysis-card.wrong {
+            background-color: #ffe6e6;
+            border-left: 6px solid #dc3545;
+            color: #9b2c2c;
+        }
+        .feedback-footnote {
+            margin-top: 8px;
+            font-size: 0.72rem;
+            text-align: center;
+            color: #9ab3cc;
+            border-top: 1px dashed #e2edf7;
+            padding-top: 12px;
+        }
+        .reset-button-container {
+            padding: 8px 20px 22px 20px;
+            background: #FFFFFF;
+            border-top: 1px solid #ecf3f9;
+            text-align: center;
+        }
+        .reset-chat {
+            background: #f8fafd;
+            border: 1.2px solid #95CAFA;
+            border-radius: 44px;
+            padding: 10px 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            font-family: inherit;
+            color: #22668d;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .reset-chat:hover {
+            background: #eef5fc;
+            transform: scale(0.98);
+        }
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .messages-area::-webkit-scrollbar { width: 5px; }
+        .messages-area::-webkit-scrollbar-track { background: #ECF3F9; border-radius: 10px; }
+        .messages-area::-webkit-scrollbar-thumb { background: #95CAFA; border-radius: 10px; }
+        @media (max-width: 560px) {
+            .message { max-width: 92%; }
+            .option-btn { padding: 11px 14px; font-size: 0.86rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="messenger" id="messengerApp">
+    <div class="chat-header">
+        <div class="avatar">👔</div>
+        <div class="chat-info">
+            <h2>Алексей Михайлович <span>клиент</span></h2>
+            <p><span class="online-dot"></span> онлайн</p>
+        </div>
+    </div>
+
+    <div class="messages-area" id="messagesArea"></div>
+
+    <div class="options-panel" id="optionsPanel">
+        <div class="options-title">Ваш ответ</div>
+        <div class="options-grid" id="optionsContainer"></div>
+        <div class="feedback-footnote" id="footnoteMsg">Выберите вариант ответа</div>
+    </div>
+
+    <div id="analysisContainer"></div>
+
+    <div class="reset-button-container">
+        <button class="reset-chat" id="resetChatBtn">⟳ Начать диалог заново</button>
+    </div>
+</div>
+
+<script>
+    // ----- ПОШАГОВЫЙ СЦЕНАРИЙ С РАЗВЕТВЛЕНИЕМ В ВЕТКЕ B -----
+    const messagesContainer = document.getElementById('messagesArea');
+    const optionsContainerDiv = document.getElementById('optionsContainer');
+    const optionsPanel = document.getElementById('optionsPanel');
+    const footnoteEl = document.getElementById('footnoteMsg');
+    const analysisDiv = document.getElementById('analysisContainer');
+
+    let currentState = {
+        locked: false
+    };
+
+    function scrollToBottom() {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function addMessage(text, sender = 'user') {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender === 'client' ? 'client-message' : 'user-message'}`;
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.innerText = text;
+        const metaSpan = document.createElement('div');
+        metaSpan.className = 'message-meta';
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        if (sender === 'client') metaSpan.innerText = `Алексей Михайлович · ${timeStr}`;
+        else metaSpan.innerText = `Вы · ${timeStr}`;
+        messageDiv.appendChild(bubble);
+        messageDiv.appendChild(metaSpan);
+        messagesContainer.appendChild(messageDiv);
+        scrollToBottom();
+        return messageDiv;
+    }
+
+    function clearOptions() { optionsContainerDiv.innerHTML = ''; }
+    function disableOptions(disabled = true) {
+        if (disabled) optionsPanel.classList.add('options-disabled');
+        else optionsPanel.classList.remove('options-disabled');
+    }
+
+    function showAnalysis(text, type = 'wrong') {
+        analysisDiv.innerHTML = '';
+        const card = document.createElement('div');
+        card.className = `analysis-card ${type === 'correct' ? 'correct' : 'wrong'}`;
+        card.innerHTML = `<strong>${type === 'correct' ? 'Верное решение' : 'Разбор ошибки'}</strong><br>${text}`;
+        analysisDiv.appendChild(card);
+        scrollToBottom();
+    }
+
+    function clearAnalysis() { analysisDiv.innerHTML = ''; }
+
+    function finishWithAnalysis(analysisText, isCorrect = false) {
+        currentState.locked = true;
+        disableOptions(true);
+        clearOptions();
+        showAnalysis(analysisText, isCorrect ? 'correct' : 'wrong');
+        footnoteEl.innerHTML = 'Диалог завершён. Нажмите «Начать заново», чтобы пройти сценарий ещё раз.';
+    }
+
+    function createButton(text, onClick) {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerText = text;
+        btn.addEventListener('click', () => {
+            if (currentState.locked) return;
+            onClick();
+        });
+        optionsContainerDiv.appendChild(btn);
+    }
+
+    // --------------------------------------------------------------
+    // СТАРТ: сообщение клиента
+    function startDialog() {
+        addMessage('Добрый день! Налоговая запросила пояснения по посреднической операции. Завтра мне нужно явиться к ним с документами. Ситуация простая: мы выступаем посредником между продавцом и покупателем. Документы сейчас не под рукой, часть — у контрагента. Можете сразу подготовить ответ?', 'client');
+        showFirstChoice();
+    }
+
+    // --------------------------------------------------------------
+    // ПЕРВЫЙ ВЫБОР
+    function showFirstChoice() {
+        clearOptions();
+        createButton('Добрый день! Давайте разберем, пришлите что есть, остальное уточним по ходу', () => {
+            addMessage('Добрый день! Давайте разберем, пришлите что есть, остальное уточним по ходу', 'user');
+            startBranchA();
+        });
+        createButton('Добрый день! Нужен полный пакет документов по сделке, без него ответ не подготовить', () => {
+            addMessage('Добрый день! Нужен полный пакет документов по сделке, без него ответ не подготовить', 'user');
+            startBranchB();
+        });
+        footnoteEl.innerHTML = 'Выберите, как ответить клиенту';
+    }
+
+    // --------------------------------------------------------------
+    // ВЕТКА A (работа без полного пакета)
+    function startBranchA() {
+        setTimeout(() => {
+            addMessage('Хорошо, отправляю. Времени мало, нужно срочно', 'client');
+            setTimeout(() => {
+                addMessage('Еще по одной сделке документов нет, но там все стандартно, просто посредническая операция', 'client');
+                setTimeout(() => {
+                    showBranchAChoice();
+                }, 700);
+            }, 600);
+        }, 500);
+    }
+
+    function showBranchAChoice() {
+        clearOptions();
+        createButton('Хорошо, учту по описанию, подготовлю ответ', () => {
+            addMessage('Хорошо, учту по описанию, подготовлю ответ', 'user');
+            continueBranchA();
+        });
+        createButton('Нужно уточнить документы по этой сделке отдельно', () => {
+            addMessage('Нужно уточнить документы по этой сделке отдельно', 'user');
+            continueBranchA();
+        });
+        footnoteEl.innerHTML = 'У клиента отсутствуют документы по одной сделке. Ваш ответ';
+    }
+
+    function continueBranchA() {
+        setTimeout(() => {
+            addMessage('Я подготовил ответ. Направляю вам', 'user');
+            setTimeout(() => {
+                addMessage('Спасибо. Можете сами съездить в инспекцию за меня? Так быстрее закроем вопрос', 'client');
+                setTimeout(() => {
+                    showBranchAFinalChoice();
+                }, 700);
+            }, 600);
+        }, 600);
+    }
+
+    function showBranchAFinalChoice() {
+        clearOptions();
+        createButton('Хорошо, уточню в инспекции и передам документы', () => {
+            addMessage('Хорошо, уточню в инспекции и передам документы', 'user');
+            setTimeout(() => {
+                addMessage('Отлично. Заодно объясните, что у нас посредническая схема, чтобы не было вопросов', 'client');
+                setTimeout(() => {
+                    finishWithAnalysis(
+                        'Ошибка: принятие на себя функций представителя без доверенности. Взаимодействие с ФНС требует подтверждённых полномочий. Нарушение границы ответственности создаёт риск претензий к консультанту.\n\nТакже ошибка: работа без полного комплекта документов ведёт к искажению позиции по сделке.',
+                        false
+                    );
+                }, 600);
+            }, 500);
+        });
+        createButton('Я могу взаимодействовать с инспекцией только по доверенности', () => {
+            addMessage('Я могу взаимодействовать с инспекцией только по доверенности', 'user');
+            setTimeout(() => {
+                addMessage('Понял. Тогда будем действовать сами', 'client');
+                setTimeout(() => {
+                    finishWithAnalysis(
+                        'Вы правильно сделали, что не согласились представлять интересы клиента без доверенности. Однако ошибку вы допустили в начале, так как согласились работать без полного комплекта документов. Вы можете некорректно составить пояснение и исказить суть сделки, и у вашего клиента начнутся проблемы с налоговой.',
+                        false
+                    );
+                }, 600);
+            }, 500);
+        });
+        footnoteEl.innerHTML = 'Клиент просит лично поехать в инспекцию. Ваш ответ';
+    }
+
+    // --------------------------------------------------------------
+    // ВЕТКА B (требование полного пакета) С РАЗВЕТВЛЕНИЕМ
+    function startBranchB() {
+        setTimeout(() => {
+            addMessage('Понимаю, но времени мало. Можем ускориться? Я доплачу за срочность', 'client');
+            setTimeout(() => {
+                showBranchBFork(); // Здесь теперь разветвление: настоять или согласиться без документов
+            }, 600);
+        }, 500);
+    }
+
+    // НОВОЕ РАЗВЕТВЛЕНИЕ: ученик выбирает — настоять на документах или согласиться работать без полного пакета
+    function showBranchBFork() {
+        clearOptions();
+        createButton('Без полного комплекта документов корректный ответ подготовить нельзя', () => {
+            addMessage('Без полного комплекта документов корректный ответ подготовить нельзя', 'user');
+            // Идём по правильному пути ветки B
+            continueBranchBCorrect();
+        });
+        createButton('Ладно, давайте начну подготовку по вашей информации, даже с неполными данными', () => {
+            addMessage('Ладно, давайте начну подготовку по вашей информации, даже с неполными данными', 'user');
+            // Ученик согласился работать без документов → переходим в ветку A (ошибка)
+            // Но нужно плавно перекинуть в сценарий ветки A, начиная с момента "Я подготовил ответ"?
+            // По логике: он согласился начать без полного пакета, дальше клиент присылает неполные данные,
+            // и мы идём по той же дороге, что и в ветке A.
+            transitionToBranchAFromB();
+        });
+        footnoteEl.innerHTML = 'Клиент предлагает доплату за срочность. Ваш ответ';
+    }
+
+    // Переход в сценарий ветки A (ошибка — работа без полного пакета)
+    function transitionToBranchAFromB() {
+        // Имитируем развитие событий, аналогичное ветке A, но с учётом уже сказанного
+        setTimeout(() => {
+            addMessage('Ок, тогда отправляю что есть. Времени мало, нужно срочно', 'client');
+            setTimeout(() => {
+                addMessage('Отправили все, что нашли. Но по одной сделке документов нет, там все стандартно, просто посредническая операция', 'client');
+                setTimeout(() => {
+                    // Теперь ученик отвечает на это
+                    showTransitionChoice();
+                }, 700);
+            }, 600);
+        }, 500);
+    }
+
+    function showTransitionChoice() {
+        clearOptions();
+        createButton('Хорошо, учту по описанию, подготовлю ответ', () => {
+            addMessage('Хорошо, учту по описанию, подготовлю ответ', 'user');
+            continueTransition();
+        });
+        createButton('Нужно уточнить документы по этой сделке отдельно', () => {
+            addMessage('Нужно уточнить документы по этой сделке отдельно', 'user');
+            continueTransition();
+        });
+        footnoteEl.innerHTML = 'У клиента отсутствуют документы по одной сделке. Ваш ответ';
+    }
+
+    function continueTransition() {
+        setTimeout(() => {
+            addMessage('Я подготовил ответ. Направляю вам', 'user');
+            setTimeout(() => {
+                addMessage('Спасибо. Можете сами съездить в инспекцию за меня? Так быстрее закроем вопрос', 'client');
+                setTimeout(() => {
+                    showTransitionFinalChoice();
+                }, 700);
+            }, 600);
+        }, 600);
+    }
+
+    function showTransitionFinalChoice() {
+        clearOptions();
+        createButton('Хорошо, уточню в инспекции и передам документы', () => {
+            addMessage('Хорошо, уточню в инспекции и передам документы', 'user');
+            setTimeout(() => {
+                addMessage('Отлично. Заодно объясните, что у нас посредническая схема, чтобы не было вопросов', 'client');
+                setTimeout(() => {
+                    finishWithAnalysis(
+                        'Вы не можете представлять интересы клиента без доверенности. Вы ошиблись, когда согласились работать без полного комплекта документов. Вы можете некорректно составить пояснение и исказить суть сделки, и у вашего клиента начнутся проблемы с налоговой. А также представлять интересы клиента без доверенности нельзя.',
+                        false
+                    );
+                }, 600);
+            }, 500);
+        });
+        createButton('Я могу взаимодействовать с инспекцией только по доверенности', () => {
+            addMessage('Я могу взаимодействовать с инспекцией только по доверенности', 'user');
+            setTimeout(() => {
+                addMessage('Понял. Тогда будем действовать сами', 'client');
+                setTimeout(() => {
+                    finishWithAnalysis(
+                        'Вы правильно сделали, что не согласились представлять интересы клиента без доверенности. Однако ошибку вы допустили в начале, так как согласились работать без полного комплекта документов. Вы можете не корректно составить пояснение и исказить суть сделки, и у вашего клиента начнутся проблемы с налоговой.',
+                        false
+                    );
+                }, 600);
+            }, 500);
+        });
+        footnoteEl.innerHTML = 'Клиент просит лично поехать в инспекцию. Ваш ответ';
+    }
+
+    // Правильный путь ветки B: ученик настоял на документах
+    function continueBranchBCorrect() {
+        setTimeout(() => {
+            addMessage('Ок, начинаем собирать. Часть документов у контрагента, будут с задержкой', 'client');
+            setTimeout(() => {
+                addMessage('Отправили все, что нашли. Но по одному договору нет подписанного приложения', 'client');
+                setTimeout(() => {
+                    showBranchBFinalChoice();
+                }, 800);
+            }, 700);
+        }, 600);
+    }
+
+    function showBranchBFinalChoice() {
+        clearOptions();
+        createButton('Начинаю готовить ответ на текущих документах', () => {
+            addMessage('Начинаю готовить ответ на текущих документах', 'user');
+            setTimeout(() => {
+                addMessage('Хорошо. Ждем результат', 'client');
+                setTimeout(() => {
+                    finishWithAnalysis(
+                        'Ошибка: работа без полного комплекта документов. Отсутствие подписанного приложения к договору — критическое упущение. При проверке ФНС возникает разрыв между договорной базой и фактическими операциями. Ответ теряет доказательную силу.',
+                        false
+                    );
+                }, 600);
+            }, 500);
+        });
+        createButton('Без подписанного приложения подготовить корректный ответ нельзя. Запросите документ у контрагента', () => {
+            addMessage('Без подписанного приложения подготовить корректный ответ нельзя. Запросите документ у контрагента', 'user');
+            setTimeout(() => {
+                addMessage('Понял, запрашиваем. Это займет пару дней', 'client');
+                setTimeout(() => {
+                    finishWithAnalysis(
+                        'Чтобы подготовить верный ответ, вам необходимо изучить документы по посредническим операциям клиента. Без них ответ не имеет доказательной силы. Вы сохранили юридическую чистоту консультации и зафиксировали необходимость полного пакета документов.',
+                        true
+                    );
+                }, 600);
+            }, 500);
+        });
+        footnoteEl.innerHTML = 'Отсутствует подписанное приложение к договору. Ваш ответ';
+    }
+
+    // --------------------------------------------------------------
+    // СБРОС
+    function fullReset() {
+        currentState = { locked: false };
+        messagesContainer.innerHTML = '';
+        clearAnalysis();
+        disableOptions(false);
+        startDialog();
+    }
+
+    // ИНИЦИАЛИЗАЦИЯ
+    function init() {
+        startDialog();
+        const resetBtn = document.getElementById('resetChatBtn');
+        if (resetBtn) resetBtn.addEventListener('click', fullReset);
+    }
+
+    init();
+</script>
+</body>
+</html>
